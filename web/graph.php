@@ -115,6 +115,8 @@ else
 <body>
 
 <div>
+	<a href="map.php"><button>Map</button></a>
+	
 	<form action="graph.php" method="get">
 	Node: <select name="node_id" onchange="this.form.submit()">
 <?php
