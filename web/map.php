@@ -177,7 +177,11 @@ echo "</script>";
 				{
 					setColor = 'green';
 				}
-				var unit = "<?php echo $all_sensor_types[$selected_type_index]["unit"]; ?>";
+				var unit = "";
+				<?php
+				if(isset($selected_type_index))
+					echo "unit = \"".$all_sensor_types[$selected_type_index]["unit"]."\";";
+				?>
 				popup_text = "<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a><br>"+node.data+" "+unit;
 			}
 			var circle = L.circle([node.lat, node.lon], {
