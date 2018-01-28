@@ -74,36 +74,62 @@ $randId = rand();
 <div id="graphDiv<?php echo $randId; ?>" style="width:100%;height:100%;"></div>
 
 <script>
-	Plotly.plot( "graphDiv<?php echo $randId; ?>",
-		[{
-			x: [
-				<?php
-					for ($i = 0; $i < sizeof($x); $i++) {
-						echo "'".$x[$i]."'";
-						if($i<sizeof($x)-1)
-							echo ",";
-					}
-				?>
-			],
-			y: [
-				<?php
-					for ($i = 0; $i < sizeof($y); $i++) {
-						echo $y[$i];
-						if($i<sizeof($y)-1)
-							echo ",";
-					}
-				?>
-			]
-		}],
-		{
-			title: '<?php echo $quantity." at ".$node_name; ?>',
-			margin: { t: 30 },
-			xaxis: {
-    		title: 'Time',
-    	},
-    	yaxis: {
-    		title: '<?php echo $unit; ?>'
-    	}
-		}
+	var graphDivId = "graphDiv<?php echo $randId; ?>";
+	var data = [{
+		x: [
+			<?php
+				for ($i = 0; $i < sizeof($x); $i++) {
+					echo "'".$x[$i]."'";
+					if($i<sizeof($x)-1)
+						echo ",";
+				}
+			?>
+		],
+		y: [
+			<?php
+				for ($i = 0; $i < sizeof($y); $i++) {
+					echo $y[$i];
+					if($i<sizeof($y)-1)
+						echo ",";
+				}
+			?>
+		],
+		mode: 'lines',
+	}];
+
+	var layout = {
+		title: '<?php echo $quantity." at ".$node_name; ?>',
+		margin: { t: 30 },
+		xaxis: {
+  		title: 'Time',
+  	},
+  	yaxis: {
+  		title: '<?php echo $unit; ?>'
+  	},
+	};
+
+	var myPlot = document.getElementById(graphDivId);
+
+	Plotly.plot( graphDivId,
+		data,
+		layout
 	);
+
+	myPlot.on('plotly_click', function(data){
+    var pts = '';
+    for(var i=0; i < data.points.length; i++){
+        annotate_text = 'x = '+data.points[i].x +
+                      'y = '+data.points[i].y.toPrecision(4);
+
+        annotation = {
+          text: annotate_text,
+          x: data.points[i].x,
+          y: parseFloat(data.points[i].y.toPrecision(4))
+        }
+
+        annotations = self.layout.annotations || [];
+        annotations.push(annotation);
+        Plotly.relayout(graphDivId,{annotations: annotations})
+    }
+});
 </script>
