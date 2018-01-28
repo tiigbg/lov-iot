@@ -159,13 +159,21 @@ else
 
 <?php
 	if (sizeof($sensor_ids) == 1) {
-		echo "<div style=\"width:100%;height:100%;display:inline-block;\"><div id=\"graphHolder$sensor_ids[0]\"></div></div>";
+		echo "<div style=\"width:100%;height:100%;display:inline-block;\">
+			<div id=\"graphHolder$sensor_ids[0]\">
+				Loading...
+			</div>
+		</div>";
 	}
 	else
 	{
 		for($i = 0; $i < sizeof($sensor_ids); $i++)
 		{
-			echo "<div style=\"width:48%;height:48%;display:inline-block;\"><div id=\"graphHolder$sensor_ids[$i]\"></div></div>";
+			echo "<div style=\"width:48%;height:48%;display:inline-block;\">
+				<div id=\"graphHolder$sensor_ids[$i]\">
+					Loading...
+				</div>
+			</div>";
 		}
 	}
 ?>
