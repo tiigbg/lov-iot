@@ -114,49 +114,52 @@ else
 
 <body>
 
-<div>
-	<a href="map.php"><button>Map</button></a>
-	
+<div style="display: flex;">
+	<div style="margin:20px;">
+		<a href="map.php"><button>Map</button></a>
+	</div>
+	<div>
 	<form action="graph.php" method="get">
-	Node: <select name="node_id" onchange="this.form.submit()">
-<?php
-	for($i = 0; $i < sizeof($all_nodes); $i++)
-	{
-		$selected = "";
-		if($all_nodes[$i]["id"] == $node_id)
-		{
-			$selected = "selected";
-		}
-		echo "<option value=\"".$all_nodes[$i]["id"]."\" ".$selected.">".$all_nodes[$i]["name"]."</option>";
-	}
-	?>
-	</select>
-</form>
+		Node: <select name="node_id" onchange="this.form.submit()">
+		<?php
+			for($i = 0; $i < sizeof($all_nodes); $i++)
+			{
+				$selected = "";
+				if($all_nodes[$i]["id"] == $node_id)
+				{
+					$selected = "selected";
+				}
+				echo "<option value=\"".$all_nodes[$i]["id"]."\" ".$selected.">".$all_nodes[$i]["name"]."</option>";
+			}
+		?>
+		</select>
+	</form>
 
-<form action="graph.php" method="get">
-	<input type="hidden" name="node_id" value="<?php echo $node_id; ?>" />
-	Sensor: <select name="sensor_id" onchange="this.form.submit()">
-	<?php
-	if(!$showingOnlyOneSensor)
-	{
-		echo "<option value=\"-1\" selected>All</option>";
-	}
-	else
-	{
-		echo "<option value=\"-1\">All</option>";
-	}
-	for($i = 0; $i < sizeof($all_sensors_node); $i++)
-	{
-		$selected = "";
-		if($showingOnlyOneSensor && $all_sensors_node[$i]["id"] == $sensor_ids[0])
-		{
-			$selected = "selected";
-		}
-		echo "<option value=\"".$all_sensors_node[$i]["id"]."\" ".$selected.">".$all_sensor_types[$all_sensors_node[$i]["type_id"]]["quantity"]."</option>";
-	}
-	?>
-	</select>
-</form>
+	<form action="graph.php" method="get">
+			<input type="hidden" name="node_id" value="<?php echo $node_id; ?>" />
+			Sensor: <select name="sensor_id" onchange="this.form.submit()">
+			<?php
+			if(!$showingOnlyOneSensor)
+			{
+				echo "<option value=\"-1\" selected>All</option>";
+			}
+			else
+			{
+				echo "<option value=\"-1\">All</option>";
+			}
+			for($i = 0; $i < sizeof($all_sensors_node); $i++)
+			{
+				$selected = "";
+				if($showingOnlyOneSensor && $all_sensors_node[$i]["id"] == $sensor_ids[0])
+				{
+					$selected = "selected";
+				}
+				echo "<option value=\"".$all_sensors_node[$i]["id"]."\" ".$selected.">".$all_sensor_types[$all_sensors_node[$i]["type_id"]]["quantity"]."</option>";
+			}
+			?>
+			</select>
+		</form>
+	</div>
 </div>
 
 <?php
