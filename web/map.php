@@ -6,25 +6,64 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
-$all_nodes = array();
-$sql = "SELECT id, name,lat, lon FROM nodes";
+$all_sensor_types = array();
+$sql = "SELECT id, quantity FROM sensor_types";
 $result = $conn->query($sql);
 if ($result->num_rows > 0) {
 	while($row = $result->fetch_assoc()) {
-		$all_nodes[] = $row;
+		$all_sensor_types[] = $row;
 	}
 }
 
+$typeSelected = false;
+$sensor_type_id = 0;
+$selected_nodes = array();
+
+if(isset($_GET["sensor_type"]) && is_int(filter_input(INPUT_GET, "sensor_type", FILTER_VALIDATE_INT)))
+{
+	// if sensortype with sensor_type_id exists
+	$sensor_type_id = clean_input(filter_input(INPUT_GET, "sensor_type", FILTER_VALIDATE_INT));
+	$sql = "SELECT id FROM sensor_types WHERE id=$sensor_type_id LIMIT 1";
+	$result = $conn->query($sql);
+	if ($result->num_rows > 0)
+	{
+		$typeSelected = true;
+		// if sensor with sensor_id exists
+		
+		$sql = "SELECT sensors.id, nodes.id, nodes.name, nodes.lat, nodes.lon FROM sensors INNER JOIN nodes ON sensors.node_id=nodes.id WHERE type_id=$sensor_type_id";
+		$result = $conn->query($sql);
+		if ($result->num_rows > 0) {
+			while($row = $result->fetch_assoc()) {
+				$selected_nodes[] = $row;
+			}
+		}
+	}
+}
+
+if(!$typeSelected)
+{
+	// find all nodes
+	$sql = "SELECT id, name,lat, lon FROM nodes";
+	$result = $conn->query($sql);
+	if ($result->num_rows > 0) {
+		while($row = $result->fetch_assoc()) {
+			$selected_nodes[] = $row;
+		}
+	}
+}
+
+
+
+
 echo "<script>";
 echo "var nodes = [];";
-for($i = 0; $i < sizeof($all_nodes);$i++)
+for($i = 0; $i < sizeof($selected_nodes);$i++)
 {
 	echo "nodes.push({
-		'id': ".$all_nodes[$i]["id"].",
-		'name': '".$all_nodes[$i]["name"]."',
-		'lat':".$all_nodes[$i]["lat"].",
-		'lon':".$all_nodes[$i]["lon"]."
+		'id': ".$selected_nodes[$i]["id"].",
+		'name': '".$selected_nodes[$i]["name"]."',
+		'lat':".$selected_nodes[$i]["lat"].",
+		'lon':".$selected_nodes[$i]["lon"]."
 	});";
 }
 echo "</script>";
@@ -50,7 +89,34 @@ echo "</script>";
 </head>
 
 <body>
-	<div id="mapid" style="height: 100%;"></div>
+
+	<div style="height: 10%;">
+		<form action="map.php" method="get">
+		Type: <select name="sensor_type" onchange="this.form.submit()">
+		<?php
+			if(!$typeSelected)
+			{
+				echo "<option value=\"-1\" selected>All</option>";
+			}
+			else
+			{
+				echo "<option value=\"-1\">All</option>";
+			}
+			for($i = 0; $i < sizeof($all_sensor_types); $i++)
+			{
+				$selected = "";
+				if($all_sensor_types[$i]["id"] == $sensor_type_id)
+				{
+					$selected = "selected";
+				}
+				echo "<option value=\"".$all_sensor_types[$i]["id"]."\" ".$selected.">".$all_sensor_types[$i]["quantity"]."</option>";
+			}
+			?>
+			</select>
+		</form>
+	</div>
+	
+	<div id="mapid" style="height: 90%;"></div>
 
 	<script type="text/javascript">
 		var mymap = L.map('mapid').setView([57.707094, 11.966844], 13);
