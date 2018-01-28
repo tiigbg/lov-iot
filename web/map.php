@@ -7,7 +7,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $all_sensor_types = array();
-$sql = "SELECT id, quantity FROM sensor_types";
+$sql = "SELECT id, quantity, unit FROM sensor_types";
 $result = $conn->query($sql);
 if ($result->num_rows > 0) {
 	while($row = $result->fetch_assoc()) {
@@ -129,6 +129,7 @@ echo "</script>";
 				if($all_sensor_types[$i]["id"] == $sensor_type_id)
 				{
 					$selected = "selected";
+					$selected_type_index = $i;
 				}
 				echo "<option value=\"".$all_sensor_types[$i]["id"]."\" ".$selected.">".$all_sensor_types[$i]["quantity"]."</option>";
 			}
@@ -162,7 +163,7 @@ echo "</script>";
 		nodes.forEach(function(node) {
 			var setColor ='blue';
 			var popup_text = "<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a>"
-			if(<?php echo $typeSelected; ?>)
+			if(<?php echo ($typeSelected)?"true":"false"; ?>)
 			{
 				if(node.data <= low_red || node.data >= high_red)
 				{
@@ -176,8 +177,8 @@ echo "</script>";
 				{
 					setColor = 'green';
 				}
-
-				popup_text = "<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a><br>"+node.data;
+				var unit = "<?php echo $all_sensor_types[$selected_type_index]["unit"]; ?>";
+				popup_text = "<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a><br>"+node.data+" "+unit;
 			}
 			var circle = L.circle([node.lat, node.lon], {
 				color: setColor,
