@@ -61,7 +61,7 @@ if(isset($_GET["sensor_type"]) && is_int(filter_input(INPUT_GET, "sensor_type", 
 if(!$typeSelected)
 {
 	// find all nodes
-	$sql = "SELECT id, name,lat, lon FROM nodes";
+	$sql = "SELECT id as node_id, name,lat, lon FROM nodes";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0) {
 		while($row = $result->fetch_assoc()) {
