@@ -30,13 +30,31 @@ if(isset($_GET["sensor_type"]) && is_int(filter_input(INPUT_GET, "sensor_type", 
 		$typeSelected = true;
 		// if sensor with sensor_id exists
 		
-		$sql = "SELECT sensors.id, nodes.id, nodes.name, nodes.lat, nodes.lon FROM sensors INNER JOIN nodes ON sensors.node_id=nodes.id WHERE type_id=$sensor_type_id";
+		$sql = "SELECT sensors.id as sensor_id, nodes.id as node_id, nodes.name as name, nodes.lat as lat, nodes.lon as lon FROM sensors INNER JOIN nodes ON sensors.node_id=nodes.id WHERE type_id=$sensor_type_id";
 		$result = $conn->query($sql);
 		if ($result->num_rows > 0) {
 			while($row = $result->fetch_assoc()) {
 				$selected_nodes[] = $row;
 			}
 		}
+
+		// get latest data point for each sensor
+		$data_points = array();
+		for($i = 0; $i < sizeof($selected_nodes);$i++)
+		{
+			$sql = "SELECT value FROM data WHERE sensor_id=".$selected_nodes[$i]["sensor_id"];
+			$result = $conn->query($sql);
+			if ($result->num_rows > 0) {
+				$row = $result->fetch_assoc();
+				$data_points[$selected_nodes[$i]["sensor_id"]] = $row["value"];
+			}
+			else
+			{
+				// no data found for this sensor
+				$data_points[$selected_nodes[$i]["sensor_id"]] = 0;
+			}
+		}
+
 	}
 }
 
@@ -52,18 +70,21 @@ if(!$typeSelected)
 	}
 }
 
-
-
-
 echo "<script>";
 echo "var nodes = [];";
 for($i = 0; $i < sizeof($selected_nodes);$i++)
 {
+	$data = 0;
+	if($typeSelected)
+	{
+		$data = $data_points[$selected_nodes[$i]["sensor_id"]];
+	}
 	echo "nodes.push({
-		'id': ".$selected_nodes[$i]["id"].",
+		'id': ".$selected_nodes[$i]["node_id"].",
 		'name': '".$selected_nodes[$i]["name"]."',
 		'lat':".$selected_nodes[$i]["lat"].",
-		'lon':".$selected_nodes[$i]["lon"]."
+		'lon':".$selected_nodes[$i]["lon"].",
+		'data':".$data."
 	});";
 }
 echo "</script>";
@@ -133,13 +154,37 @@ echo "</script>";
 		//var layer = new L.StamenTileLayer("watercolor");
 		mymap.addLayer(layer);
 
+		var low_red = 0;
+		var low_green = 25;
+		var high_green = 75;
+		var high_red = 100;
+
 		nodes.forEach(function(node) {
+			var setColor ='blue';
+			var popup_text = "<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a>"
+			if(<?php echo $typeSelected; ?>)
+			{
+				if(node.data <= low_red || node.data >= high_red)
+				{
+					setColor = 'red';
+				}
+				else if(node.data < low_green || node.data > high_green)
+				{
+					setColor = 'orange';
+				}
+				else
+				{
+					setColor = 'green';
+				}
+
+				popup_text = "<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a><br>"+node.data;
+			}
 			var circle = L.circle([node.lat, node.lon], {
-				color: 'red',
-				fillColor: '#f03',
+				color: setColor,
+				fillColor: setColor,
 				fillOpacity: 0.5,
 				radius: 500
-			}).bindPopup("<a href=\"graph.php?node_id="+node.id+"\">"+node.name+"</a>").addTo(mymap);
+			}).bindPopup(popup_text).addTo(mymap);
 		});
 
 	</script>
