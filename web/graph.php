@@ -27,52 +27,57 @@ if ($result->num_rows > 0) {
 }
 
 
+//------------
 $sensor_ids = array();
-// one sensor is chosen
+$all_sensors_node = array();
+$showingOnlyOneSensor = false;
+$validInput = false;
+
+// if sensor_id is set and an int
 if(isset($_GET["sensor_id"]) && is_int(filter_input(INPUT_GET, "sensor_id", FILTER_VALIDATE_INT)))
 {
-	$sensor_ids[] = clean_input(filter_input(INPUT_GET, "sensor_id", FILTER_VALIDATE_INT));
-}
-
-$all_sensors_node = array();
-// one node is chosen, or chosen sensor_id is negative
-$node_is_chosen = false;
-if((isset($sensor_ids[0]) && $sensor_ids[0] < 0) || (isset($_GET["node_id"]) && is_int(filter_input(INPUT_GET, "node_id", FILTER_VALIDATE_INT))))
-{
-	if (isset($sensor_ids[0]) && $sensor_ids[0] < 0)
-	{
-		// sensor_id was set to negative, but no node_id was given
-		// assuming the first node
-		$node_id = 1;
-	}
-	else
-	{
-		$node_id = clean_input(filter_input(INPUT_GET, "node_id", FILTER_VALIDATE_INT));
-	}
-	$node_is_chosen = true;
-}
-else
-{
-	if(!isset($sensor_ids[0]))
-	{
-		// no input given. Taking the first one.
-		$sensor_ids[0] = 1;
-	}
-	// find which node the one selected sensor belongs to
-	$sql = "SELECT id, node_id FROM sensors WHERE id=".$sensor_ids[0]." LIMIT 1";
+	// if sensor with sensor_id exists
+	$temp = clean_input(filter_input(INPUT_GET, "sensor_id", FILTER_VALIDATE_INT));
+	$sql = "SELECT id, node_id FROM sensors WHERE id=$temp LIMIT 1";
 	$result = $conn->query($sql);
 	if ($result->num_rows > 0)
 	{
-		$node_id = $result->fetch_assoc()["node_id"];
+		// show only this sensor
+		// (also find which node it belongs to)
+		$row = $result->fetch_assoc();
+		$sensor_ids[] = $row["id"];
+		$node_id = $row["node_id"];
+		$showingOnlyOneSensor = true;
+		$validInput = true;
+	}	
+}
+//*
+// if !showingOnlyOneSensor
+if(!$showingOnlyOneSensor)
+{
+	// if node_id is set and an int
+	if(isset($_GET["node_id"])
+		&& is_int(filter_input(INPUT_GET, "node_id", FILTER_VALIDATE_INT)))
+	{
+		// if node exists with that id
+		$temp = clean_input(filter_input(INPUT_GET, "node_id", FILTER_VALIDATE_INT));
+		$sql = "SELECT id FROM nodes WHERE id=$temp LIMIT 1";
+		$result = $conn->query($sql);
+		if ($result->num_rows > 0) {
+			// show all sensors of this node
+			$row = $result->fetch_assoc();
+			$node_id = $row["id"];
+			$validInput = true;
+		}
 	}
 }
+
 // find all sensors of the current node
 $sql = "SELECT id, type_id FROM sensors WHERE node_id=".$node_id." ";	
 $result = $conn->query($sql);
-
 if ($result->num_rows > 0) {
 	while($row = $result->fetch_assoc()) {
-		if($node_is_chosen)
+		if(!$showingOnlyOneSensor)
 		{
 			$sensor_ids[] = $row["id"];
 		}
@@ -80,7 +85,13 @@ if ($result->num_rows > 0) {
 	}
 }
 
-
+//*/
+if(!$validInput)
+{
+	// show nothing?
+	die("No valid input given.");
+}
+// see if a limit is set otherwise use default
 if(isset($_GET["latest"]) && is_int(filter_input(INPUT_GET, "latest", FILTER_VALIDATE_INT)))
 {
 	$latest = clean_input(filter_input(INPUT_GET, "latest", FILTER_VALIDATE_INT));
@@ -124,7 +135,7 @@ else
 	<input type="hidden" name="node_id" value="<?php echo $node_id; ?>" />
 	Sensor: <select name="sensor_id" onchange="this.form.submit()">
 	<?php
-	if($node_is_chosen)
+	if(!$showingOnlyOneSensor)
 	{
 		echo "<option value=\"-1\" selected>All</option>";
 	}
@@ -135,7 +146,7 @@ else
 	for($i = 0; $i < sizeof($all_sensors_node); $i++)
 	{
 		$selected = "";
-		if(!$node_is_chosen && $all_sensors_node[$i]["id"] == $sensor_ids[0])
+		if($showingOnlyOneSensor && $all_sensors_node[$i]["id"] == $sensor_ids[0])
 		{
 			$selected = "selected";
 		}
