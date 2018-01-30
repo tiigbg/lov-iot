@@ -159,6 +159,18 @@ else
 			?>
 			</select>
 		</form>
+
+		<form action="graph.php" method="get">
+			<input type="hidden" name="node_id" value="<?php echo $node_id; ?>" />
+			<input type="hidden" name="sensor_id" value="<?php echo $showingOnlyOneSensor? $sensor_ids[0]: "-1"; ?>" />
+			Time: <select name="latest" onchange="this.form.submit()">
+				<option value="50000"></option>
+				<option value="20">1 minute</option>
+				<option value="1200">1 hour</option>
+				<option value="28800">1 day</option>
+				<option value="201600">1 week</option>
+			</select>
+		</form>
 	</div>
 </div>
 
